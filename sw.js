@@ -1,4 +1,4 @@
-const CACHE_NAME = 'islamic-pwa-v1';
+const CACHE_NAME = 'islamic-pwa-v2';
 const URLS_TO_CACHE = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const URLS_TO_CACHE = [
   './js/hadith.js',
   './js/tasbeeh.js',
   './js/qaza.js',
+  './js/adhan.min.js',
   './manifest.json'
 ];
 
