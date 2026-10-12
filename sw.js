@@ -1,6 +1,6 @@
 // ============ SERVICE WORKER for Faizan e Sunnat PWA ============
 
-const CACHE_NAME = 'faizan-sunnat-v1';
+const CACHE_NAME = 'faizan-sunnat-v5';
 const URLS_TO_CACHE = [
   './',
   './index.html',
