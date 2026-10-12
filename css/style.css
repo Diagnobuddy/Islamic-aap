@@ -15,8 +15,6 @@
   --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
   --radius: 16px;
   --radius-sm: 10px;
-  --header-height: 80px;
-  --hadith-bar-height: 130px;
 }
 
 body.dark-mode {
@@ -59,7 +57,7 @@ body {
   }
 }
 
-/* ============ HEADER ============ */
+/* ============ HEADER (STICKY - always visible) ============ */
 .app-header {
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
   color: white;
@@ -129,21 +127,16 @@ body {
   justify-content: center;
 }
 
-/* ============ HADITH TOP BAR ============ */
+/* ============ HADITH TOP BAR (SCROLLS with page) ============ */
 .hadith-top-bar {
   background: linear-gradient(90deg, #D4AF37, #F4D97B, #D4AF37);
   color: #0B3D2E;
-  padding: 10px 14px;
+  padding: 12px 14px;
   display: flex;
   align-items: flex-start;
   gap: 8px;
   box-shadow: 0 2px 8px rgba(212,175,55,0.3);
-  position: sticky;
-  top: 72px;
-  z-index: 98;
   font-size: 0.82rem;
-  max-height: 180px;
-  overflow: hidden;
 }
 
 .hadith-top-icon {
@@ -157,15 +150,13 @@ body {
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  overflow: hidden;
 }
 .hadith-top-text > div {
   word-wrap: break-word;
   overflow-wrap: break-word;
-  hyphens: auto;
 }
 
-/* ============ INFO BAR ============ */
+/* ============ INFO BAR (SCROLLS with page) ============ */
 .info-bar {
   background: var(--card);
   padding: 8px 14px;
@@ -176,9 +167,6 @@ body {
   font-size: 0.75rem;
   color: var(--text-muted);
   border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 72px;
-  z-index: 99;
   flex-wrap: wrap;
 }
 .info-item {
@@ -515,6 +503,7 @@ body.dark-mode .namaz-time { color: var(--accent); }
 }
 .nav-btn.active { color: var(--primary); }
 body.dark-mode .nav-btn.active { color: var(--accent); }
+.nav-icon { font-size: 1.25rem; line-height: 1; }
 .nav-icon-img {
   width: 24px;
   height: 24px;
@@ -683,7 +672,7 @@ body.dark-mode .nav-btn.active { color: var(--accent); }
   .hijri-calendar-inner { padding: 10px; }
 }
 
-/* ============ STANDARD PHONES (375-428px - iPhone 12,13,14, Android) ============ */
+/* ============ STANDARD PHONES (375-428px) ============ */
 @media (min-width: 361px) and (max-width: 428px) {
   .app-main { padding: 12px; }
 }
@@ -713,7 +702,7 @@ body.dark-mode .nav-btn.active { color: var(--accent); }
   .hijri-calendar-inner { max-width: 480px; }
 }
 
-/* ============ LANDSCAPE MODE (Phone rotated) ============ */
+/* ============ LANDSCAPE MODE ============ */
 @media (max-height: 500px) and (orientation: landscape) {
   .hadith-top-bar { max-height: 70px; overflow-y: auto; }
   .countdown-card { padding: 12px; }
@@ -737,13 +726,8 @@ body.dark-mode .nav-btn.active { color: var(--accent); }
     -webkit-user-select: none;
   }
   input, select, textarea {
-    font-size: 16px; /* Prevents zoom on input focus in iOS */
+    font-size: 16px;
   }
-}
-
-/* ============ ANDROID SPECIFIC ============ */
-@media screen and (min-width: 360px) and (max-width: 480px) {
-  .card { border-radius: 14px; }
 }
 
 /* ============ PRINT ============ */
