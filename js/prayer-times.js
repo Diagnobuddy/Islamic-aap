@@ -1,14 +1,17 @@
+// ============ NAMAZ TIMES WITH MASLAK SUPPORT ============
+
 const MASLAK_METHODS = {
-  hanafi:  { name: 'Hanafi',        method: 'Karachi', asrFactor: 2 },
-  shafi:   { name: "Shafi'i",        method: 'MWL',     asrFactor: 1 },
-  maliki:  { name: 'Maliki',         method: 'MWL',     asrFactor: 1 },
-  hanbali: { name: 'Hanbali',        method: 'MWL',     asrFactor: 1 },
-  shia:    { name: 'Shia (Jafari)',  method: 'Tehran',  asrFactor: 1 }
+  hanafi:  { name: 'Hanafi',        method: 'Karachi',  asrFactor: 2 },
+  shafi:   { name: "Shafi'i",        method: 'MWL',      asrFactor: 1 },
+  maliki:  { name: 'Maliki',         method: 'MWL',      asrFactor: 1 },
+  hanbali: { name: 'Hanbali',        method: 'MWL',      asrFactor: 1 },
+  shia:    { name: 'Shia (Jafari)',  method: 'Tehran',   asrFactor: 1 }
 };
 
 let userCoords = { lat: 28.6139, lng: 77.2090 };
 let userMaslak = localStorage.getItem('maslak') || 'hanafi';
 
+// ---------- User Location लें ----------
 function getUserLocation() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) { resolve(userCoords); return; }
@@ -23,18 +26,29 @@ function getUserLocation() {
   });
 }
 
+// ---------- Maslak चुनें ----------
 function setMaslak(maslak) {
   userMaslak = maslak;
   localStorage.setItem('maslak', maslak);
   renderPrayerTimes();
 }
 
+// ---------- नमाज़ के वक़्त calculate करें ----------
 function calculatePrayerTimes() {
   const config = MASLAK_METHODS[userMaslak];
   const coordinates = new adhan.Coordinates(userCoords.lat, userCoords.lng);
   const date = new Date();
-  const params = adhan.CalculationMethod[config.method]();
 
+  // Safe method getter — अगर method न मिले तो default use करें
+  let methodName = config.method;
+  let params;
+  try {
+    params = adhan.CalculationMethod[methodName]();
+  } catch (e) {
+    params = adhan.CalculationMethod.MuslimWorldLeague();
+  }
+
+  // Shia (Jafari) के लिए special angles
   if (userMaslak === 'shia') {
     params.madhab = adhan.Madhab.Shafi;
     params.fajrAngle = 16;
@@ -44,6 +58,7 @@ function calculatePrayerTimes() {
   }
 
   const times = new adhan.PrayerTimes(coordinates, date, params);
+
   return {
     fajr:    formatTime(times.fajr),
     sunrise: formatTime(times.sunrise),
@@ -54,6 +69,7 @@ function calculatePrayerTimes() {
   };
 }
 
+// ---------- Time Format ----------
 function formatTime(date) {
   if (!date) return '--:--';
   let h = date.getHours();
@@ -64,6 +80,7 @@ function formatTime(date) {
   return `${h}:${m} ${ampm}`;
 }
 
+// ---------- Render करें ----------
 async function renderPrayerTimes() {
   await getUserLocation();
   const times = calculatePrayerTimes();
@@ -110,6 +127,7 @@ async function renderPrayerTimes() {
   document.getElementById('namaz').innerHTML = html;
 }
 
+// ---------- Init ----------
 function initPrayerTimes() {
   renderPrayerTimes();
 }
