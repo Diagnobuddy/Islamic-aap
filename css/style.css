@@ -515,7 +515,13 @@ body.dark-mode .namaz-time { color: var(--accent); }
 }
 .nav-btn.active { color: var(--primary); }
 body.dark-mode .nav-btn.active { color: var(--accent); }
-.nav-icon { font-size: 1.25rem; line-height: 1; }
+.nav-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  line-height: 1;
+  margin-bottom: 1px;
+}
 .nav-label {
   font-size: 0.6rem;
   font-weight: 500;
