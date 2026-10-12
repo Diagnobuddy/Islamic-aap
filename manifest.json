@@ -1,0 +1,22 @@
+{
+  "name": "Islamic PWA",
+  "short_name": "IslamPWA",
+  "description": "Namaz times, Quran, Hadith, Tasbeeh, Qaza tracker",
+  "start_url": "/Islamic-aap/",
+  "display": "standalone",
+  "background_color": "#0a5c36",
+  "theme_color": "#0a5c36",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
