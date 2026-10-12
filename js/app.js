@@ -46,31 +46,20 @@ async function getUserIP() {
       const res2 = await fetch('https://api.ipify.org');
       const ip = await res2.text();
       return ip;
-    } catch (e2) {
-      console.log('IP fetch failed');
-      return null;
-    }
+    } catch (e2) { return null; }
   }
 }
 
-// --- Get IP Info (Location from IP) ---
 async function getIPInfo() {
   try {
     const res = await fetch('https://ipapi.co/json/');
     const data = await res.json();
     return {
-      ip: data.ip,
-      city: data.city,
-      region: data.region,
-      country: data.country_name,
-      lat: data.latitude,
-      lng: data.longitude,
-      timezone: data.timezone
+      ip: data.ip, city: data.city, region: data.region,
+      country: data.country_name, lat: data.latitude,
+      lng: data.longitude, timezone: data.timezone
     };
-  } catch (e) {
-    console.log('IP info fetch failed:', e);
-    return null;
-  }
+  } catch (e) { return null; }
 }
 
 // --- Hijri Date ---
@@ -124,24 +113,21 @@ function getHijriDate(engDate) {
       day: 'numeric', month: 'numeric', year: 'numeric'
     });
     const parts = fmt.formatToParts(engDate);
-    const day = parseInt(parts.find(p => p.type === 'day').value);
-    const month = parseInt(parts.find(p => p.type === 'month').value);
-    const year = parseInt(parts.find(p => p.type === 'year').value);
-    return { day, month, year };
-  } catch (e) {
-    return null;
-  }
+    return {
+      day: parseInt(parts.find(p => p.type === 'day').value),
+      month: parseInt(parts.find(p => p.type === 'month').value),
+      year: parseInt(parts.find(p => p.type === 'year').value)
+    };
+  } catch (e) { return null; }
 }
 
 function renderHijriCalendar() {
   const year = hijriViewDate.getFullYear();
   const month = hijriViewDate.getMonth();
-  
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const daysInMonth = lastDay.getDate();
   const startWeekday = firstDay.getDay();
-  
   const firstHijri = getHijriDate(firstDay);
   const lastHijri = getHijriDate(lastDay);
   
@@ -198,7 +184,7 @@ function renderHijriCalendar() {
   }
 }
 
-// ============ DAILY HADITH TOP BAR ============
+// ============ DAILY HADITH ============
 let dailyHadith = null;
 let hadithEnglish = null;
 let hadithUrdu = null;
@@ -209,14 +195,11 @@ async function loadDailyHadith() {
       const data = await fetch('data/hadith/bukhari.json').then(r => r.json());
       hadithEnglish = data.hadiths || data;
     }
-    
     if (!hadithUrdu) {
       try {
         const data = await fetch('data/hadith/bukhari-urdu.json').then(r => r.json());
         hadithUrdu = data.hadiths || data;
-      } catch (e) {
-        console.log('Urdu hadith not available:', e);
-      }
+      } catch (e) {}
     }
     
     const today = new Date();
@@ -227,9 +210,7 @@ async function loadDailyHadith() {
     window.dailyHadithUrdu = (hadithUrdu && hadithUrdu[index]) ? hadithUrdu[index] : null;
     
     displayDailyHadith();
-    
   } catch (e) {
-    console.error('Daily hadith error:', e);
     const el = document.getElementById('hadith-top-text');
     if (el) el.textContent = 'Assalamu Alaikum';
   }
@@ -242,98 +223,61 @@ function displayDailyHadith() {
   const hEng = dailyHadith;
   const hUrd = window.dailyHadithUrdu;
   
-  let english = hEng.text || hEng.english || '';
-  english = english.replace(/\s+/g, ' ').trim();
+  let english = (hEng.text || hEng.english || '').replace(/\s+/g, ' ').trim();
+  let urdu = hUrd ? (hUrd.text || hUrd.urdu || '').replace(/\s+/g, ' ').trim() : '';
   
-  let urdu = '';
-  if (hUrd) {
-    urdu = hUrd.text || hUrd.urdu || '';
-    urdu = urdu.replace(/\s+/g, ' ').trim();
-  }
-  
-  const bookName = 'Sahih Bukhari';
   const hadithNum = hEng.hadithnumber || hEng.id || '?';
   
   let html = '';
-  
   if (urdu) {
-    html += `
-      <div style="font-family:'Noto Nastaliq Urdu','Amiri',serif;font-size:0.92rem;line-height:2;color:#0B3D2E;direction:rtl;text-align:right;margin-bottom:8px;font-weight:500;">
-        ${urdu}
-      </div>
-    `;
+    html += `<div style="font-family:'Noto Nastaliq Urdu','Amiri',serif;font-size:0.92rem;line-height:2;color:#0B3D2E;direction:rtl;text-align:right;margin-bottom:8px;font-weight:500;">${urdu}</div>`;
   }
-  
   if (english) {
-    html += `
-      <div style="font-size:0.78rem;line-height:1.5;color:#0B3D2E;margin-bottom:6px;">
-        ${english}
-      </div>
-    `;
+    html += `<div style="font-size:0.78rem;line-height:1.5;color:#0B3D2E;margin-bottom:6px;">${english}</div>`;
   }
-  
-  html += `
-    <div style="font-size:0.72rem;color:#5C4A15;opacity:0.9;font-weight:600;letter-spacing:0.3px;margin-top:4px;border-top:1px dashed rgba(92,74,21,0.3);padding-top:6px;">
-      📚 ${bookName} • Hadith #${hadithNum}
-    </div>
-  `;
+  html += `<div style="font-size:0.72rem;color:#5C4A15;opacity:0.9;font-weight:600;letter-spacing:0.3px;margin-top:4px;border-top:1px dashed rgba(92,74,21,0.3);padding-top:6px;">📚 Sahih Bukhari • Hadith #${hadithNum}</div>`;
   
   el.innerHTML = html;
 }
 
-// ============ AZAN NOTIFICATION + AUDIO ============
-let azanEnabled = false;
+// ============ AUTO AZAN (No Buttons) ============
 let azanCheckInterval = null;
+let azanEnabled = false;
 
-function toggleAzan() {
+async function setupAutoAzan() {
   if (!('Notification' in window)) {
-    alert('इस browser में notifications support नहीं हैं');
+    console.log('Notifications not supported');
     return;
   }
   
-  azanEnabled = !azanEnabled;
-  localStorage.setItem('azanEnabled', azanEnabled);
-  
-  const btn = document.getElementById('azan-toggle');
-  if (btn) {
-    btn.textContent = azanEnabled ? '🔔 Azan ON' : '🔕 Azan OFF';
-    btn.style.background = azanEnabled ? 'var(--primary)' : 'var(--border)';
-    btn.style.color = azanEnabled ? 'white' : 'var(--text)';
+  // If permission already granted, start immediately
+  if (Notification.permission === 'granted') {
+    azanEnabled = true;
+    localStorage.setItem('azanEnabled', 'true');
+    startAzanChecker();
+    console.log('🕌 Azan auto-started (permission already granted)');
+    return;
   }
   
-  if (azanEnabled) {
-    Notification.requestPermission().then(perm => {
-      if (perm === 'granted') {
-        startAzanChecker();
-        new Notification('🕌 Azan Enabled', {
-          body: 'नमाज़ के वक़्त पर Azan sound + notification मिलेगा',
-          icon: 'icons/icon-192.png'
-        });
-      } else {
-        azanEnabled = false;
-        alert('Notification permission denied');
+  // Wait for first user interaction to request permission
+  if (Notification.permission === 'default') {
+    const askPermission = async () => {
+      try {
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          azanEnabled = true;
+          localStorage.setItem('azanEnabled', 'true');
+          startAzanChecker();
+          console.log('🕌 Azan auto-enabled after permission');
+        }
+      } catch (e) {
+        console.log('Permission error:', e);
       }
-    });
-  } else {
-    if (azanCheckInterval) clearInterval(azanCheckInterval);
-  }
-}
-
-// 🔊 Test Azan Audio
-function testAzan() {
-  try {
-    const audio = new Audio('sounds/azan.mp3');
-    audio.volume = 1.0;
-    audio.play()
-      .then(() => console.log('🕌 Azan playing...'))
-      .catch(e => {
-        console.log('Audio error:', e);
-        alert('❌ Azan play नहीं हो पाई।\n\n' + 
-              'कारण: ' + e.message + '\n\n' +
-              'Solution: Page पर कहीं click करें, फिर दोबारा try करें।');
-      });
-  } catch (e) {
-    alert('❌ Azan error: ' + e.message);
+    };
+    
+    // Request on first click or touch
+    document.addEventListener('click', askPermission, { once: true });
+    document.addEventListener('touchstart', askPermission, { once: true });
   }
 }
 
@@ -342,7 +286,6 @@ function startAzanChecker() {
   azanCheckInterval = setInterval(() => {
     checkAzanTime();
   }, 60000);
-  // Also check immediately
   checkAzanTime();
 }
 
@@ -362,30 +305,24 @@ async function checkAzanTime() {
       const notifiedKey = `notified_${p}_${now.toDateString()}`;
       if (localStorage.getItem(notifiedKey)) continue;
       
-      // 🔊 PLAY AZAN AUDIO
+      // Play Azan audio
       try {
         const azanAudio = new Audio('sounds/azan.mp3');
         azanAudio.volume = 1.0;
-        azanAudio.play()
-          .then(() => console.log('🕌 Azan playing for', prayerNames[p]))
-          .catch(e => console.log('Azan autoplay blocked:', e));
-      } catch (e) {
-        console.log('Azan audio error:', e);
-      }
+        azanAudio.play().catch(e => console.log('Autoplay blocked:', e));
+      } catch (e) {}
       
-      // 🔔 SHOW NOTIFICATION
+      // Show notification
       if (Notification.permission === 'granted') {
         try {
-          new Notification(`${prayerIcons[p]} ${prayerNames[p]} का वक़्त`, {
-            body: `${prayerNames[p]} की अज़ान हो गई है। नमाज़ पढ़ लें।`,
+          new Notification(`${prayerIcons[p]} ${prayerNames[p]}`, {
+            body: `It's time for ${prayerNames[p]} prayer`,
             icon: 'icons/icon-192.png',
             badge: 'icons/icon-192.png',
             tag: `azan_${p}`,
             requireInteraction: true
           });
-        } catch (e) {
-          console.log('Notification error:', e);
-        }
+        } catch (e) {}
       }
       
       localStorage.setItem(notifiedKey, 'true');
@@ -393,33 +330,18 @@ async function checkAzanTime() {
   }
 }
 
-// ============ USER INFO / IP DISPLAY ============
+// ============ USER INFO ============
 async function loadUserInfo() {
   const info = await getIPInfo();
-  
   if (info) {
-    console.log('📍 User IP Info:', info);
     window.userIPInfo = info;
-    
     const cityEl = document.getElementById('city-name');
     if (cityEl && info.city) {
       cityEl.textContent = `${info.city}${info.region ? ', ' + info.region : ''}`;
     }
-    
     localStorage.setItem('userIP', info.ip);
     localStorage.setItem('userCity', info.city);
     localStorage.setItem('userCountry', info.country);
-    
-    if (info.lat && info.lng) {
-      localStorage.setItem('ipLat', info.lat);
-      localStorage.setItem('ipLng', info.lng);
-    }
-  } else {
-    const ip = await getUserIP();
-    if (ip) {
-      console.log('📍 User IP:', ip);
-      localStorage.setItem('userIP', ip);
-    }
   }
 }
 
@@ -429,18 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateHijriDate();
   loadDailyHadith();
   loadUserInfo();
-  
-  // Restore Azan state
-  if (localStorage.getItem('azanEnabled') === 'true') {
-    azanEnabled = true;
-    const btn = document.getElementById('azan-toggle');
-    if (btn) {
-      btn.textContent = '🔔 Azan ON';
-      btn.style.background = 'var(--primary)';
-      btn.style.color = 'white';
-    }
-    startAzanChecker();
-  }
+  setupAutoAzan();
   
   if (typeof initPrayerTimes === 'function') initPrayerTimes();
   if (typeof initQuran === 'function') initQuran();
