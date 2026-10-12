@@ -77,14 +77,24 @@ body {
 .header-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
 
 .logo-circle {
-  width: 42px; height: 42px;
-  min-width: 42px;
+  width: 44px; height: 44px;
+  min-width: 44px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.15);
+  background: #0B3D2E;
   border: 2px solid var(--accent);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.3rem; color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(212,175,55,0.3);
+}
+.logo-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .app-title {

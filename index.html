@@ -2,10 +2,18 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0B3D2E">
-<title>Faizan — E — Sunnat</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Faizan">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Faizan e Sunnat">
+<meta name="description" content="Islamic Companion - Namaz, Quran, Hadith, Masjid, Tasbeeh, Qaza">
+<title>Faizan e Sunnat</title>
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Amiri:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
@@ -15,9 +23,11 @@
 <body>
 <header class="app-header">
 <div class="header-left">
-<div class="logo-circle">☪</div>
+<div class="logo-circle">
+<img src="icons/icon-192.png" alt="Faizan e Sunnat" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;">
+</div>
 <div>
-<h1 class="app-title">FAIZAN - E - SUNNAT</h1>
+<h1 class="app-title">Faizan e Sunnat</h1>
 <p class="app-subtitle">Islamic Companion</p>
 </div>
 </div>
@@ -83,7 +93,6 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/adhan.min.js"></script>
 
-<!-- GOOGLE MAPS API - YAHAN API KEY PASTE KAREIN -->
 <script>
   (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({
     key: "AIzaSyBlFiBNk8QhRWeTWOIyBqwwT5ZQ8IbejZg",
@@ -98,5 +107,15 @@
 <script src="js/masjid.js"></script>
 <script src="js/tasbeeh.js"></script>
 <script src="js/qaza.js"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('✅ SW registered:', reg.scope))
+        .catch(err => console.log('❌ SW error:', err));
+    });
+  }
+</script>
 </body>
 </html>
