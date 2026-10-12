@@ -223,7 +223,7 @@ async function renderPrayerTimes() {
     <div class="card">
       <div class="card-title"><span class="card-title-icon">🔔</span> Azan Notification & Sound</div>
       <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:10px;">
-        हर नमाज़ के वक़्त पर Azan sound + notification
+        Get Azan sound and notification at every prayer time
       </p>
       <button id="azan-toggle" onclick="toggleAzan()" style="width:100%;padding:12px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:0.95rem;font-weight:500;background:${azanOn ? 'var(--primary)' : 'var(--border)'};color:${azanOn ? 'white' : 'var(--text)'};margin-bottom:8px;">
         ${azanOn ? '🔔 Azan ON' : '🔕 Azan OFF'}
