@@ -1,4 +1,4 @@
-// ============ NAMAZ TIMES WITH MASLAK SUPPORT ============
+﻿// ============ NAMAZ TIMES WITH MASLAK SUPPORT ============
 
 const MASLAK_METHODS = {
   hanafi:  { name: 'Hanafi',        method: 'Karachi',  asrFactor: 2 },
@@ -11,13 +11,14 @@ const MASLAK_METHODS = {
 let userCoords = { lat: 28.6139, lng: 77.2090 };
 let userMaslak = localStorage.getItem('maslak') || 'hanafi';
 
-// ---------- User Location लें ----------
+// ---------- Location ----------
 function getUserLocation() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) { resolve(userCoords); return; }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        updateCityName();
         resolve(userCoords);
       },
       () => resolve(userCoords),
@@ -26,29 +27,39 @@ function getUserLocation() {
   });
 }
 
-// ---------- Maslak चुनें ----------
+async function updateCityName() {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userCoords.lat}&lon=${userCoords.lng}&format=json`);
+    const data = await res.json();
+    const city = data.address?.city || data.address?.town || data.address?.state || 'Location';
+    const el = document.getElementById('city-name');
+    if (el) el.textContent = city;
+  } catch (e) {
+    const el = document.getElementById('city-name');
+    if (el) el.textContent = `${userCoords.lat.toFixed(2)}, ${userCoords.lng.toFixed(2)}`;
+  }
+}
+
+// ---------- Maslak ----------
 function setMaslak(maslak) {
   userMaslak = maslak;
   localStorage.setItem('maslak', maslak);
   renderPrayerTimes();
 }
 
-// ---------- नमाज़ के वक़्त calculate करें ----------
+// ---------- Calculate ----------
 function calculatePrayerTimes() {
   const config = MASLAK_METHODS[userMaslak];
   const coordinates = new adhan.Coordinates(userCoords.lat, userCoords.lng);
   const date = new Date();
-
-  // Safe method getter — अगर method न मिले तो default use करें
-  let methodName = config.method;
+  
   let params;
   try {
-    params = adhan.CalculationMethod[methodName]();
+    params = adhan.CalculationMethod[config.method]();
   } catch (e) {
     params = adhan.CalculationMethod.MuslimWorldLeague();
   }
 
-  // Shia (Jafari) के लिए special angles
   if (userMaslak === 'shia') {
     params.madhab = adhan.Madhab.Shafi;
     params.fajrAngle = 16;
@@ -58,18 +69,17 @@ function calculatePrayerTimes() {
   }
 
   const times = new adhan.PrayerTimes(coordinates, date, params);
-
   return {
-    fajr:    formatTime(times.fajr),
-    sunrise: formatTime(times.sunrise),
-    dhuhr:   formatTime(times.dhuhr),
-    asr:     formatTime(times.asr),
-    maghrib: formatTime(times.maghrib),
-    isha:    formatTime(times.isha)
+    fajr:    times.fajr,
+    sunrise: times.sunrise,
+    dhuhr:   times.dhuhr,
+    asr:     times.asr,
+    maghrib: times.maghrib,
+    isha:    times.isha
   };
 }
 
-// ---------- Time Format ----------
+// ---------- Format ----------
 function formatTime(date) {
   if (!date) return '--:--';
   let h = date.getHours();
@@ -80,12 +90,77 @@ function formatTime(date) {
   return `${h}:${m} ${ampm}`;
 }
 
-// ---------- Render करें ----------
+function formatTime24(date) {
+  if (!date) return '--:--';
+  return `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
+}
+
+// ---------- Current/Next ----------
+function findCurrentNext(times) {
+  const now = new Date();
+  const order = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+  let current = null;
+  let next = null;
+  
+  for (let i = 0; i < order.length; i++) {
+    const key = order[i];
+    const t = times[key];
+    if (!t) continue;
+    if (now >= t) { current = key; } else { next = key; break; }
+  }
+  if (!next) next = 'fajr';
+  return { current, next };
+}
+
+// ---------- Countdown ----------
+let countdownInterval = null;
+
+function startCountdown(nextKey, times) {
+  if (countdownInterval) clearInterval(countdownInterval);
+  const el = document.getElementById('countdown-value');
+  const sub = document.getElementById('countdown-sub');
+  const label = document.getElementById('countdown-label');
+  if (!el) return;
+  
+  const icons = { fajr:'🌅', sunrise:'☀️', dhuhr:'🌤️', asr:'🌇', maghrib:'🌆', isha:'🌙' };
+  const names = { fajr:'Fajr', sunrise:'Sunrise', dhuhr:'Dhuhr', asr:'Asr', maghrib:'Maghrib', isha:'Isha' };
+  
+  let target = times[nextKey];
+  if (target && target < new Date()) {
+    target = new Date(target.getTime() + 24 * 60 * 60 * 1000);
+  }
+  
+  function update() {
+    const diff = target - new Date();
+    if (diff <= 0) { renderPrayerTimes(); return; }
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.textContent = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  }
+  
+  if (label) label.textContent = `Time until ${names[nextKey]}`;
+  if (sub) sub.textContent = `${icons[nextKey]} ${names[nextKey]} at ${formatTime(times[nextKey])}`;
+  update();
+  countdownInterval = setInterval(update, 1000);
+}
+
+// ---------- Render ----------
 async function renderPrayerTimes() {
   await getUserLocation();
   const times = calculatePrayerTimes();
   const config = MASLAK_METHODS[userMaslak];
-
+  const { current, next } = findCurrentNext(times);
+  
+  // Save times for Azan checker
+  localStorage.setItem('prayerTimes', JSON.stringify({
+    fajr: formatTime24(times.fajr),
+    dhuhr: formatTime24(times.dhuhr),
+    asr: formatTime24(times.asr),
+    maghrib: formatTime24(times.maghrib),
+    isha: formatTime24(times.isha)
+  }));
+  
   const namazList = [
     { key: 'fajr',    label: 'Fajr',    icon: '🌅' },
     { key: 'sunrise', label: 'Sunrise', icon: '☀️' },
@@ -94,40 +169,72 @@ async function renderPrayerTimes() {
     { key: 'maghrib', label: 'Maghrib', icon: '🌆' },
     { key: 'isha',    label: 'Isha',    icon: '🌙' }
   ];
-
-  let maslakButtons = Object.keys(MASLAK_METHODS).map(key => `
+  
+  const maslakButtons = Object.keys(MASLAK_METHODS).map(key => `
     <button class="maslak-btn ${key === userMaslak ? 'active' : ''}" onclick="setMaslak('${key}')">
       ${MASLAK_METHODS[key].name}
     </button>
   `).join('');
-
+  
+  const namazRows = namazList.map(n => {
+    const isCurrent = n.key === current;
+    const isPassed = times[n.key] && times[n.key] < new Date() && !isCurrent;
+    const cls = isCurrent ? 'current' : (isPassed ? 'passed' : '');
+    return `
+      <div class="namaz-row ${cls}">
+        <div class="namaz-left">
+          <span class="namaz-icon">${n.icon}</span>
+          <div>
+            <div class="namaz-name">${n.label}</div>
+            ${isCurrent ? '<div class="namaz-name-small">Now</div>' : ''}
+          </div>
+        </div>
+        <span class="namaz-time">${formatTime(times[n.key])}</span>
+      </div>
+    `;
+  }).join('');
+  
+  // Check azan state
+  const azanOn = localStorage.getItem('azanEnabled') === 'true';
+  
   const html = `
-    <div class="card">
-      <h3>📍 Location</h3>
-      <p>Lat: ${userCoords.lat.toFixed(4)}, Lng: ${userCoords.lng.toFixed(4)}</p>
-      <button onclick="renderPrayerTimes()" style="margin-top:8px;padding:6px 12px;border:none;background:#0a5c36;color:white;border-radius:6px;cursor:pointer;">
-        🔄 Refresh Location
-      </button>
+    <div class="countdown-card">
+      <div class="countdown-label" id="countdown-label">Loading...</div>
+      <div class="countdown-value" id="countdown-value">--:--:--</div>
+      <div class="countdown-sub" id="countdown-sub"></div>
     </div>
+    
     <div class="card">
-      <h3>🕌 Maslak चुनें</h3>
+      <div class="card-title"><span class="card-title-icon">🕌</span> Maslak</div>
       <div class="maslak-list">${maslakButtons}</div>
     </div>
+    
     <div class="card">
-      <h3>⏰ Namaz Times — ${config.name}</h3>
-      ${namazList.map(n => `
-        <div class="namaz-row">
-          <span>${n.icon} ${n.label}</span>
-          <strong>${times[n.key]}</strong>
-        </div>
-      `).join('')}
+      <div class="card-title"><span class="card-title-icon">⏰</span> ${config.name} Timings</div>
+      <div class="namaz-list">${namazRows}</div>
+    </div>
+    
+    <div class="card">
+      <div class="card-title"><span class="card-title-icon">📍</span> Location</div>
+      <p style="font-size:0.85rem;color:var(--text-muted);">Lat: ${userCoords.lat.toFixed(4)}, Lng: ${userCoords.lng.toFixed(4)}</p>
+      <button class="location-btn" onclick="renderPrayerTimes()">🔄 Refresh</button>
+    </div>
+    
+    <div class="card">
+      <div class="card-title"><span class="card-title-icon">🔔</span> Azan Notification</div>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:10px;">
+       Get notification at prayer time
+      </p>
+      <button id="azan-toggle" onclick="toggleAzan()" style="width:100%;padding:12px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:0.95rem;font-weight:500;background:${azanOn ? 'var(--primary)' : 'var(--border)'};color:${azanOn ? 'white' : 'var(--text)'};">
+        ${azanOn ? '🔔 Azan ON' : '🔕 Azan OFF'}
+      </button>
     </div>
   `;
-
+  
   document.getElementById('namaz').innerHTML = html;
+  startCountdown(next, times);
 }
 
-// ---------- Init ----------
 function initPrayerTimes() {
   renderPrayerTimes();
 }
