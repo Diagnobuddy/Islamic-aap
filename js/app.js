@@ -35,6 +35,44 @@ function loadDarkMode() {
   }
 }
 
+// --- Get User IP ---
+async function getUserIP() {
+  try {
+    const res = await fetch('https://api.ipify.org?format=json');
+    const data = await res.json();
+    return data.ip;
+  } catch (e) {
+    try {
+      const res2 = await fetch('https://api.ipify.org');
+      const ip = await res2.text();
+      return ip;
+    } catch (e2) {
+      console.log('IP fetch failed');
+      return null;
+    }
+  }
+}
+
+// --- Get IP Info (Location from IP) ---
+async function getIPInfo() {
+  try {
+    const res = await fetch('https://ipapi.co/json/');
+    const data = await res.json();
+    return {
+      ip: data.ip,
+      city: data.city,
+      region: data.region,
+      country: data.country_name,
+      lat: data.latitude,
+      lng: data.longitude,
+      timezone: data.timezone
+    };
+  } catch (e) {
+    console.log('IP info fetch failed:', e);
+    return null;
+  }
+}
+
 // --- Hijri Date ---
 function updateHijriDate() {
   try {
@@ -283,7 +321,6 @@ function toggleAzan() {
 
 function startAzanChecker() {
   if (azanCheckInterval) clearInterval(azanCheckInterval);
-  
   azanCheckInterval = setInterval(() => {
     checkAzanTime();
   }, 60000);
@@ -315,11 +352,49 @@ async function checkAzanTime() {
   }
 }
 
+// ============ USER INFO / IP DISPLAY ============
+async function loadUserInfo() {
+  // Try IP info
+  const info = await getIPInfo();
+  
+  if (info) {
+    console.log('📍 User IP Info:', info);
+    
+    // Save for later use
+    window.userIPInfo = info;
+    
+    // Update city name if available
+    const cityEl = document.getElementById('city-name');
+    if (cityEl && info.city) {
+      cityEl.textContent = `${info.city}, ${info.region || info.country}`;
+    }
+    
+    // Store IP for reference
+    localStorage.setItem('userIP', info.ip);
+    localStorage.setItem('userCity', info.city);
+    localStorage.setItem('userCountry', info.country);
+    
+    // Store IP-based coordinates as fallback
+    if (info.lat && info.lng) {
+      localStorage.setItem('ipLat', info.lat);
+      localStorage.setItem('ipLng', info.lng);
+    }
+  } else {
+    // Fallback: try just IP
+    const ip = await getUserIP();
+    if (ip) {
+      console.log('📍 User IP:', ip);
+      localStorage.setItem('userIP', ip);
+    }
+  }
+}
+
 // ============ INITIALIZATION ============
 document.addEventListener('DOMContentLoaded', () => {
   loadDarkMode();
   updateHijriDate();
   loadDailyHadith();
+  loadUserInfo();
   
   if (localStorage.getItem('azanEnabled') === 'true') {
     azanEnabled = true;
