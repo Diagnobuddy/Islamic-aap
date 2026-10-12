@@ -221,12 +221,15 @@ async function renderPrayerTimes() {
     </div>
     
     <div class="card">
-      <div class="card-title"><span class="card-title-icon">🔔</span> Azan Notification</div>
+      <div class="card-title"><span class="card-title-icon">🔔</span> Azan Notification & Sound</div>
       <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:10px;">
-       Get notification at prayer time
+        हर नमाज़ के वक़्त पर Azan sound + notification
       </p>
-      <button id="azan-toggle" onclick="toggleAzan()" style="width:100%;padding:12px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:0.95rem;font-weight:500;background:${azanOn ? 'var(--primary)' : 'var(--border)'};color:${azanOn ? 'white' : 'var(--text)'};">
+      <button id="azan-toggle" onclick="toggleAzan()" style="width:100%;padding:12px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:0.95rem;font-weight:500;background:${azanOn ? 'var(--primary)' : 'var(--border)'};color:${azanOn ? 'white' : 'var(--text)'};margin-bottom:8px;">
         ${azanOn ? '🔔 Azan ON' : '🔕 Azan OFF'}
+      </button>
+      <button onclick="testAzan()" style="width:100%;padding:10px;border:1.5px solid var(--primary);border-radius:10px;cursor:pointer;font-family:inherit;font-size:0.85rem;font-weight:500;background:transparent;color:var(--primary);">
+        🔊 Test Azan Sound
       </button>
     </div>
   `;

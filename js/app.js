@@ -281,7 +281,7 @@ function displayDailyHadith() {
   el.innerHTML = html;
 }
 
-// ============ AZAN NOTIFICATION ============
+// ============ AZAN NOTIFICATION + AUDIO ============
 let azanEnabled = false;
 let azanCheckInterval = null;
 
@@ -306,8 +306,8 @@ function toggleAzan() {
       if (perm === 'granted') {
         startAzanChecker();
         new Notification('🕌 Azan Enabled', {
-          body: 'नमाज़ के वक़्त पर notification मिलेगा',
-          icon: '/icons/icon-192.png'
+          body: 'नमाज़ के वक़्त पर Azan sound + notification मिलेगा',
+          icon: 'icons/icon-192.png'
         });
       } else {
         azanEnabled = false;
@@ -319,11 +319,31 @@ function toggleAzan() {
   }
 }
 
+// 🔊 Test Azan Audio
+function testAzan() {
+  try {
+    const audio = new Audio('sounds/azan.mp3');
+    audio.volume = 1.0;
+    audio.play()
+      .then(() => console.log('🕌 Azan playing...'))
+      .catch(e => {
+        console.log('Audio error:', e);
+        alert('❌ Azan play नहीं हो पाई।\n\n' + 
+              'कारण: ' + e.message + '\n\n' +
+              'Solution: Page पर कहीं click करें, फिर दोबारा try करें।');
+      });
+  } catch (e) {
+    alert('❌ Azan error: ' + e.message);
+  }
+}
+
 function startAzanChecker() {
   if (azanCheckInterval) clearInterval(azanCheckInterval);
   azanCheckInterval = setInterval(() => {
     checkAzanTime();
   }, 60000);
+  // Also check immediately
+  checkAzanTime();
 }
 
 async function checkAzanTime() {
@@ -335,17 +355,38 @@ async function checkAzanTime() {
   const savedTimes = JSON.parse(localStorage.getItem('prayerTimes') || '{}');
   const prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
   const prayerNames = { fajr: 'Fajr', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' };
+  const prayerIcons = { fajr: '🌅', dhuhr: '🌤️', asr: '🌇', maghrib: '🌆', isha: '🌙' };
   
   for (const p of prayers) {
     if (savedTimes[p] === currentTime) {
       const notifiedKey = `notified_${p}_${now.toDateString()}`;
       if (localStorage.getItem(notifiedKey)) continue;
       
-      new Notification(`🕌 ${prayerNames[p]} का वक़्त`, {
-        body: `${prayerNames[p]} की अज़ान हो गई है। नमाज़ पढ़ लें।`,
-        icon: '/icons/icon-192.png',
-        tag: `azan_${p}`
-      });
+      // 🔊 PLAY AZAN AUDIO
+      try {
+        const azanAudio = new Audio('sounds/azan.mp3');
+        azanAudio.volume = 1.0;
+        azanAudio.play()
+          .then(() => console.log('🕌 Azan playing for', prayerNames[p]))
+          .catch(e => console.log('Azan autoplay blocked:', e));
+      } catch (e) {
+        console.log('Azan audio error:', e);
+      }
+      
+      // 🔔 SHOW NOTIFICATION
+      if (Notification.permission === 'granted') {
+        try {
+          new Notification(`${prayerIcons[p]} ${prayerNames[p]} का वक़्त`, {
+            body: `${prayerNames[p]} की अज़ान हो गई है। नमाज़ पढ़ लें।`,
+            icon: 'icons/icon-192.png',
+            badge: 'icons/icon-192.png',
+            tag: `azan_${p}`,
+            requireInteraction: true
+          });
+        } catch (e) {
+          console.log('Notification error:', e);
+        }
+      }
       
       localStorage.setItem(notifiedKey, 'true');
     }
@@ -354,33 +395,26 @@ async function checkAzanTime() {
 
 // ============ USER INFO / IP DISPLAY ============
 async function loadUserInfo() {
-  // Try IP info
   const info = await getIPInfo();
   
   if (info) {
     console.log('📍 User IP Info:', info);
-    
-    // Save for later use
     window.userIPInfo = info;
     
-    // Update city name if available
     const cityEl = document.getElementById('city-name');
     if (cityEl && info.city) {
-      cityEl.textContent = `${info.city}, ${info.region || info.country}`;
+      cityEl.textContent = `${info.city}${info.region ? ', ' + info.region : ''}`;
     }
     
-    // Store IP for reference
     localStorage.setItem('userIP', info.ip);
     localStorage.setItem('userCity', info.city);
     localStorage.setItem('userCountry', info.country);
     
-    // Store IP-based coordinates as fallback
     if (info.lat && info.lng) {
       localStorage.setItem('ipLat', info.lat);
       localStorage.setItem('ipLng', info.lng);
     }
   } else {
-    // Fallback: try just IP
     const ip = await getUserIP();
     if (ip) {
       console.log('📍 User IP:', ip);
@@ -396,6 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadDailyHadith();
   loadUserInfo();
   
+  // Restore Azan state
   if (localStorage.getItem('azanEnabled') === 'true') {
     azanEnabled = true;
     const btn = document.getElementById('azan-toggle');
