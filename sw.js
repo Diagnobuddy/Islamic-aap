@@ -1,6 +1,6 @@
 // ============ SERVICE WORKER for Faizan e Sunnat PWA ============
 
-const CACHE_NAME = 'faizan-sunnat-v6';
+const CACHE_NAME = 'faizan-sunnat-v7';
 const URLS_TO_CACHE = [
   './',
   './index.html',
@@ -53,12 +53,15 @@ self.addEventListener('fetch', event => {
   
   // Skip Google APIs and external
   const url = event.request.url;
-  if (url.includes('googleapis.com') || 
-      url.includes('overpass-api.de') ||
-      url.includes('nominatim') ||
-      url.includes('aladhan.com')) {
-    return;
-  }
+if (url.includes('googleapis.com') || 
+    url.includes('overpass-api.de') ||
+    url.includes('nominatim') ||
+    url.includes('aladhan.com') ||
+    url.includes('ipapi.co') ||
+    url.includes('ipwho.is') ||
+    url.includes('ipify.org')) {
+  return;
+}
   
   event.respondWith(
     caches.match(event.request).then(response => {
