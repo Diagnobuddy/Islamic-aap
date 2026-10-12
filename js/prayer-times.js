@@ -11,6 +11,7 @@ const MASLAK_METHODS = {
 let userCoords = { lat: 28.6139, lng: 77.2090 };
 let userMaslak = localStorage.getItem('maslak') || 'hanafi';
 
+// ---------- Location ----------
 function getUserLocation() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) { resolve(userCoords); return; }
@@ -39,12 +40,14 @@ async function updateCityName() {
   }
 }
 
+// ---------- Maslak ----------
 function setMaslak(maslak) {
   userMaslak = maslak;
   localStorage.setItem('maslak', maslak);
   renderPrayerTimes();
 }
 
+// ---------- Calculate ----------
 function calculatePrayerTimes() {
   const config = MASLAK_METHODS[userMaslak];
   const coordinates = new adhan.Coordinates(userCoords.lat, userCoords.lng);
@@ -76,6 +79,7 @@ function calculatePrayerTimes() {
   };
 }
 
+// ---------- Format ----------
 function formatTime(date) {
   if (!date) return '--:--';
   let h = date.getHours();
@@ -91,6 +95,7 @@ function formatTime24(date) {
   return `${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
 }
 
+// ---------- Current/Next ----------
 function findCurrentNext(times) {
   const now = new Date();
   const order = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
@@ -107,6 +112,7 @@ function findCurrentNext(times) {
   return { current, next };
 }
 
+// ---------- Countdown ----------
 let countdownInterval = null;
 
 function startCountdown(nextKey, times) {
@@ -139,6 +145,7 @@ function startCountdown(nextKey, times) {
   countdownInterval = setInterval(update, 1000);
 }
 
+// ---------- Render ----------
 async function renderPrayerTimes() {
   await getUserLocation();
   const times = calculatePrayerTimes();
@@ -187,6 +194,9 @@ async function renderPrayerTimes() {
     `;
   }).join('');
   
+  // Check azan state
+  const azanOn = localStorage.getItem('azanEnabled') === 'true';
+  
   const html = `
     <div class="countdown-card">
       <div class="countdown-label" id="countdown-label">Loading...</div>
@@ -208,6 +218,16 @@ async function renderPrayerTimes() {
       <div class="card-title"><span class="card-title-icon">📍</span> Location</div>
       <p style="font-size:0.85rem;color:var(--text-muted);">Lat: ${userCoords.lat.toFixed(4)}, Lng: ${userCoords.lng.toFixed(4)}</p>
       <button class="location-btn" onclick="renderPrayerTimes()">🔄 Refresh</button>
+    </div>
+    
+    <div class="card">
+      <div class="card-title"><span class="card-title-icon">🔔</span> Azan Notification</div>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:10px;">
+        Get Azan sound and notification at every prayer time
+      </p>
+      <button id="azan-toggle" onclick="toggleAzan()" style="width:100%;padding:12px;border:none;border-radius:10px;cursor:pointer;font-family:inherit;font-size:0.95rem;font-weight:500;background:${azanOn ? 'var(--primary)' : 'var(--border)'};color:${azanOn ? 'white' : 'var(--text)'};">
+        ${azanOn ? '🔔 Azan ON' : '🔕 Azan OFF'}
+      </button>
     </div>
   `;
   
