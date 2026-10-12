@@ -1,22 +1,48 @@
 {
-  "name": "Islamic PWA",
-  "short_name": "IslamPWA",
-  "description": "Namaz times, Quran, Hadith, Tasbeeh, Qaza tracker",
+  "name": "Faizan e Sunnat",
+  "short_name": "Faizan",
+  "description": "Islamic Companion - Namaz times, Quran, Hadith, Masjid finder, Tasbeeh, Qaza",
   "start_url": "/Islamic-aap/",
+  "scope": "/Islamic-aap/",
   "display": "standalone",
-  "background_color": "#0a5c36",
-  "theme_color": "#0a5c36",
   "orientation": "portrait",
+  "background_color": "#0B3D2E",
+  "theme_color": "#0B3D2E",
+  "lang": "hi",
+  "dir": "ltr",
+  "categories": ["lifestyle", "education", "religion"],
   "icons": [
     {
       "src": "icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Namaz Times",
+      "short_name": "Namaz",
+      "url": "/Islamic-aap/?tab=namaz",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Quran",
+      "short_name": "Quran",
+      "url": "/Islamic-aap/?tab=quran",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
